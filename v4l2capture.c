@@ -427,14 +427,19 @@ static PyObject *Video_device_set_exposure_absolute(Video_device *self, PyObject
       return NULL;
     }
 
-  struct v4l2_control ctrl;
-  CLEAR(ctrl);
-  ctrl.id    = V4L2_CID_EXPOSURE_ABSOLUTE;
-  ctrl.value = exposure;
-  if(my_ioctl(self->fd, VIDIOC_S_CTRL, &ctrl)){
+  struct v4l2_ext_controls extCtrls;
+  struct v4l2_ext_control extCtrl;
+  CLEAR(extCtrls);
+  CLEAR(extCtrl);
+  extCtrl.id    = V4L2_CID_EXPOSURE_ABSOLUTE;
+  extCtrl.value = exposure;
+  extCtrls.controls = &extCtrl;
+  extCtrls.count = 1;
+  extCtrls.ctrl_class = V4L2_CTRL_CLASS_CAMERA;
+  if(my_ioctl(self->fd, VIDIOC_S_EXT_CTRLS, &extCtrls)){
   	return NULL;
   }
-  return Py_BuildValue("i",ctrl.value);
+  return Py_BuildValue("i",extCtrl.value);
 #else
   return NULL;
 #endif
@@ -443,13 +448,18 @@ static PyObject *Video_device_set_exposure_absolute(Video_device *self, PyObject
 static PyObject *Video_device_get_exposure_absolute(Video_device *self)
 {
 #ifdef V4L2_CID_EXPOSURE_ABSOLUTE
-  struct v4l2_control ctrl;
-  CLEAR(ctrl);
-  ctrl.id    = V4L2_CID_EXPOSURE_ABSOLUTE;
-  if(my_ioctl(self->fd, VIDIOC_G_CTRL, &ctrl)){
+  struct v4l2_ext_controls extCtrls;
+  struct v4l2_ext_control extCtrl;
+  CLEAR(extCtrls);
+  CLEAR(extCtrl);
+  extCtrl.id    = V4L2_CID_EXPOSURE_ABSOLUTE;
+  extCtrls.controls = &extCtrl;
+  extCtrls.count = 1;
+  extCtrls.ctrl_class = V4L2_CTRL_CLASS_CAMERA;
+ if(my_ioctl(self->fd, VIDIOC_G_EXT_CTRLS, &extCtrls)){
   	return NULL;
   }
-  return Py_BuildValue("i",ctrl.value);
+  return Py_BuildValue("i",extCtrl.value);
 #else
   return NULL;
 #endif
